@@ -1,4 +1,5 @@
-use auth_service::models::{RegisterRequest, RegisterResponse};
+use auth_service::models::login::LoginIdentifier;
+use auth_service::models::{LoginRequest, LoginResponse, RegisterRequest, RegisterResponse};
 use auth_service::server;
 use warp::test::request;
 
@@ -29,4 +30,28 @@ async fn test_register_route() {
     let user: RegisterResponse = serde_json::from_slice(res.body()).unwrap();
 
     assert_eq!(user.id, 1);
+}
+
+#[tokio::test]
+async fn test_login_route() {
+    let server = setup_server().await;
+
+    let user = LoginRequest {
+        identifier: LoginIdentifier::Username("user".to_string()),
+        password: "".to_string(),
+    };
+
+    let res = request()
+        .method("POST")
+        .path("/login")
+        .json(&user)
+        .reply(&server)
+        .await;
+
+    assert_eq!(res.status(), 200);
+
+    let user: LoginResponse = serde_json::from_slice(res.body()).unwrap();
+
+    assert_eq!(user.id, 1);
+    assert_eq!(user.token, "PLACEHOLDER_JWT");
 }
